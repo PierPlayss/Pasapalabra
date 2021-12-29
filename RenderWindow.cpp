@@ -95,7 +95,7 @@ void RenderWindow::render(Entity& p_entity, double angle, float multiplicador) {
 	dst.w = p_entity.getCurrentFrame().w * multiplicador;
 	dst.h = p_entity.getCurrentFrame().h * multiplicador;
 
-	SDL_RenderCopyEx(renderer, p_entity.getTex(), &src, &dst,angle,&pt, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(renderer, p_entity.getTex(), &src, &dst,angle,NULL, SDL_FLIP_NONE);
 }
 
 void RenderWindow::render(Entity& p_entity, float multiplicador)
