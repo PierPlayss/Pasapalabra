@@ -56,7 +56,27 @@ bool settingsmouse(int x, int y, int buttons[]) {
 	else {
 		buttons[5] = 0;
 	}
-	
+	if (x > 60 and x < 125 and y > 105 and y < 140) {
+		buttons[6] = 1;
+		return true;
+	}
+	else {
+		buttons[6] = 0;
+	}
+	if (x > 15 and x < 62 and y > 105 and y < 160) {
+		buttons[7] = 1;
+		return true;
+	}
+	else {
+		buttons[7] = 0;
+	}
+	if (x > 140 and x < 170 and y > 110 and y < 140) {
+		buttons[8] = 1;
+		return true;
+	}
+	else {
+		buttons[8] = 0;
+	}
 	
 
 }
