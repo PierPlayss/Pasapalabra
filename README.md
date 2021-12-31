@@ -1,5 +1,5 @@
 # Pasapalabra
-Its a game base on the Argentinian version of Pasapalabra, madre with C++, SDL2 and OpenCV 
+Its a game base on the Argentinian version of Pasapalabra, made with C++, SDL2, OpenCV and React
 
 # Pictures
 ![Screenshot_15](https://user-images.githubusercontent.com/37775910/147611901-da5debec-fcba-45c6-9283-a41ff02ff1cf.png)
