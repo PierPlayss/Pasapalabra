@@ -1,3 +1,5 @@
+//Retextured
+
 //SDL2
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -27,7 +29,7 @@ RenderWindow window("Pasapalabra", 1280, 720);
 
 int SetMouseX, SetMouseY;
 void checkposition(bool rosco1Over, int answers[], int& posicion, int& respondidas, int selected[]);
-void game(int answers[], int selected[], int& posicion, int buttons[], bool& roscoOver, int& respondidas,int &acertadas,int& rosco,int selected2[],int &posicion2,bool &changesomething, bool roscoOver2,bool &timerOn);
+void game(int answers[], int selected[], int& posicion, int buttons[], bool& roscoOver, int& respondidas,int &acertadas,int& rosco,int selected2[],int &posicion2,bool &changesomething, bool roscoOver2,bool &timerOn, int &incorrectas);
 void SetMousePos(int x, int y) {
 	SetMouseX = x;
 	//cout << "x: " << SetMouseX << endl;
@@ -112,12 +114,14 @@ int main(int argc, char* argv[]) {
 	int respondidas2 = 0;
 	int acertadas = 0;
 	int acertadas2 = 0;
+	int incorrectas = 0;
+	int incorrectas2 = 0;
 	bool rosco1Over = false;
 	bool rosco2Over = false;
 	bool changesomething = false;
 	int rosco = 1;
-	int timer = 150, timer2 = 150;
-	int auxtimer = timer, auxtimer2 = timer2;
+	
+	
 	int angulo[2] = { 0,0 };
 	string timerS, timerS2;
 	bool timerOn = false, timer2On = false;
@@ -160,8 +164,52 @@ int main(int argc, char* argv[]) {
 	Mix_Music* bgm = Mix_LoadMUS("res/sound/music.mp3");
 	clock_t time;
 	bool stopMusic = false;
+
+
+	//Archivos
+	ofstream roscoyletra;
+	fstream preguntas;
+	fstream tiempo;
+	stringstream tim;
+	string aux;
+	int timer =-1, timer2 = -1;
+	string preguntasAzul[25];
+	string respuestasAzul[25];
+	string preguntasNaranja[25];
+	string respuestasNaranja[25];
+	tiempo.open("timers.txt", ios::in);
+	getline(tiempo, aux);
+	tim.clear();
+	tim << aux;
+	tim >> timer;
+	getline(tiempo, aux);
+	tim.clear();
+	tim << aux;
+	tim >> timer2;
+
+	int auxtimer = timer, auxtimer2 = timer2;
+	preguntas.open("questions.txt", ios::in);
+	for (int i = 0; i < 25; i++) {
+		getline(preguntas, preguntasAzul[i]);
+		getline(preguntas, respuestasAzul[i]);
+		//cout << answersAzul[i] << endl;
+	}
+	for (int i = 0; i < 25; i++) {
+		getline(preguntas, preguntasNaranja[i]);
+		getline(preguntas, respuestasNaranja[i]);
+		//cout << answersAzul[i] << endl;
+	}
+	preguntas.close();
+
+	const Uint8* keystates = SDL_GetKeyboardState(NULL);
+	bool SDLButton[3] = { 0,0,0};
+
 	while (gameRunning)
 	{	
+		acertadas = 0;
+		acertadas2 = 0;
+		incorrectas = 0;
+		incorrectas2 = 0;
 		if (stopMusic==false and settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[8] == 1) {
 			if (!Mix_PlayingMusic()) {
 				Mix_PlayMusic(bgm, -1);
@@ -246,6 +294,8 @@ int main(int argc, char* argv[]) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				
 				}
+			
+			
 		}
 		setMouseCallback("Settings", onMouse, reinterpret_cast<void*>(&Settings));
 		reset.copyTo(Settings(Rect(0, 0, reset.cols, reset.rows)));
@@ -307,11 +357,13 @@ int main(int argc, char* argv[]) {
 			window.drawText(abecedario[i].c_str(), x[i] + 3 + 625, y[i] + 3, 4, 21, 245, 38);
 			if (answers[i] == 1) {
 				Entity green(lugaresX[i] - 15, lugaresY[i], 52, 52, greenTexture);
+				acertadas++;
 				window.drawText(abecedario[i].c_str(), x[i] + 3, y[i] + 3, 4, 21, 245, 38);
 				window.drawText(abecedario[i].c_str(), x[i] + 3 + 625, y[i] + 3, 4, 21, 245, 38);
 				window.render(green, 1);
 			}
 			if (answers2[i] == 1) {
+				acertadas2++;
 				Entity green(lugaresX[i] - 15+625, lugaresY[i], 52, 52, greenTexture);
 				window.drawText(abecedario[i].c_str(), x[i] + 3 + 625, y[i] + 3, 4, 21, 245, 38);
 				window.render(green, 1);
@@ -327,11 +379,13 @@ int main(int argc, char* argv[]) {
 				window.render(yellow, 1);
 			}
 			if (answers[i] == 3) {
+				incorrectas++;
 				Entity red(lugaresX[i] - 15, lugaresY[i], 52, 52, redTexture);
 				window.drawText(abecedario[i].c_str(), x[i] + 3, y[i] + 3, 4, 21, 245, 38);
 				window.render(red, 1);
 			}
 			if (answers2[i] == 3) {
+				incorrectas2++;
 				Entity red(lugaresX[i] - 15+625, lugaresY[i], 52, 52, redTexture);
 				window.drawText(abecedario[i].c_str(), x[i] + 3 + 625, y[i] + 3, 4, 21, 245, 38);
 				window.render(red, 1);
@@ -339,10 +393,29 @@ int main(int argc, char* argv[]) {
 			if (selected[i] == 1 and show[0]==1) {
 				Entity selectedEntity(lugaresX[i] - 15, lugaresY[i], 52, 52, selectedTexture);
 				window.render(selectedEntity, 1);
+				if (rosco == 1) {
+					roscoyletra.open("./base-react/server/txt.txt", ios::in);
+					roscoyletra << preguntasAzul[i] << endl;
+					roscoyletra << abecedario[i] << endl;
+					roscoyletra << "Azul" << endl;
+					roscoyletra << respuestasAzul[i] << endl;
+					roscoyletra.close();
+				}
+				
 			}
 			if (selected2[i] == 1 and show[1] == 1) {
 				Entity selectedEntity(lugaresX[i] - 15 + 625, lugaresY[i], 52, 52, selectedTexture);
 				window.render(selectedEntity, 1);
+				if (rosco == 2) {
+					roscoyletra.open("./base-react/server/txt.txt", ios::in);
+					roscoyletra << preguntasNaranja[i] << endl;
+					roscoyletra << abecedario[i] << endl;
+					roscoyletra << "Naranja" << endl;
+					roscoyletra << respuestasNaranja[i] << endl;
+								
+					roscoyletra.close();
+				}
+				
 			}
 			
 			
@@ -405,10 +478,10 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (rosco == 1 and rosco1Over==false) {
-			game(answers, selected, posicion, buttons, rosco1Over, respondidas,acertadas,rosco,selected2,posicion2,changesomething,rosco2Over,timerOn);
+			game(answers, selected, posicion, buttons, rosco1Over, respondidas,acertadas,rosco,selected2,posicion2,changesomething,rosco2Over,timerOn,incorrectas);
 		}
 		if(rosco == 2 and rosco2Over == false) {
-			game(answers2, selected2, posicion2, buttons, rosco2Over, respondidas2,acertadas2, rosco,selected,posicion,changesomething,rosco1Over,timer2On);
+			game(answers2, selected2, posicion2, buttons, rosco2Over, respondidas2,acertadas2, rosco,selected,posicion,changesomething,rosco1Over,timer2On,incorrectas);
 		}
 		tp.clear();
 		tp << acertadas;
@@ -521,7 +594,7 @@ void checkposition(bool rosco1Over,int answers[],int &posicion,int &respondidas,
 		}
 	}
 }
-void game(int answers[],int selected[],int &posicion,int buttons[],bool &roscoOver,int &respondidas,int &acertadas,int &rosco,int selected2[],int &posicion2, bool& changesomething,bool roscoOver2,bool &timerOn) {
+void game(int answers[],int selected[],int &posicion,int buttons[],bool &roscoOver,int &respondidas,int &acertadas,int &rosco,int selected2[],int &posicion2, bool& changesomething,bool roscoOver2,bool &timerOn, int& incorrectas) {
 	
 
 	if (GetAsyncKeyState(VK_LEFT) or (settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[3] == 1)) {
@@ -565,12 +638,11 @@ void game(int answers[],int selected[],int &posicion,int buttons[],bool &roscoOv
 
 
 
-	if (settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[0] == 1) {
-
+	if ((settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[0] == 1)) {
+	
 		if (answers[posicion] == 0 or answers[posicion] == 2 or changesomething==true) {
 			answers[posicion] = 1;
 			respondidas++;
-			acertadas++;
 			
 		}
 		selected[posicion] = 0;
@@ -589,7 +661,8 @@ void game(int answers[],int selected[],int &posicion,int buttons[],bool &roscoOv
 		SetMouseX = -1;
 		SetMouseY = -1;
 	}
-	if (settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[1] == 1) {
+	if ((settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[1] == 1)) {
+		
 		if (answers[posicion] == 0 or answers[posicion] == 2 or changesomething == true) {
 			answers[posicion] = 3;
 			respondidas++;
@@ -619,7 +692,8 @@ void game(int answers[],int selected[],int &posicion,int buttons[],bool &roscoOv
 		
 	}
 
-	if (settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[2] == 1) {
+	if ((settingsmouse(SetMouseX, SetMouseY, buttons) == true and buttons[2] == 1)) {
+		
 		if (answers[posicion] == 0 or answers[posicion] == 2 or changesomething == true) {
 			answers[posicion] = 2;
 			changesomething == false;
@@ -643,7 +717,7 @@ void game(int answers[],int selected[],int &posicion,int buttons[],bool &roscoOv
 		SetMouseY = -1;
 	}
 
-	if (respondidas >= 25) {
+	if (acertadas+incorrectas >= 25) {
 		roscoOver = true;
 		checkposition(roscoOver, answers, posicion, respondidas, selected);
 	}
